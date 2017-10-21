@@ -1,4 +1,4 @@
-package in.ac.iiitv.cs;
+package in.ac.iiitv.CS;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

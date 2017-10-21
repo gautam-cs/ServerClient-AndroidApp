@@ -4,21 +4,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="in.ac.iiitv.cs.MainActivity">
+    tools:context="in.ac.iiitv.CS.MainActivity"
+    android:weightSum="1">
 
     <Button
         android:id="@+id/client"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="97dp"
+        android:layout_weight="0.69"
         android:text="Client"
         tools:layout_editor_absoluteX="280dp"
         tools:layout_editor_absoluteY="7dp" />
 
     <Button
         android:id="@+id/server"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="142dp"
+        android:layout_height="93dp"
         android:text="Server"
         tools:layout_editor_absoluteX="-3dp"
-        tools:layout_editor_absoluteY="447dp" />
+        tools:layout_editor_absoluteY="447dp"
+        android:layout_weight="0.32" />
 </LinearLayout>

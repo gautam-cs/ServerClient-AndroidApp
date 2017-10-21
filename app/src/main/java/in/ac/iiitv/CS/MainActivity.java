@@ -1,4 +1,4 @@
-package in.ac.iiitv.cs;
+package in.ac.iiitv.CS;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;

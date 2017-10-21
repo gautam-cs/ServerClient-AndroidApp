@@ -7,7 +7,7 @@ android:paddingBottom="16dp"
 android:paddingLeft="16dp"
 android:paddingRight="16dp"
 android:paddingTop="16dp"
-tools:context="in.ac.iiitv.cs.ServerActivity" >
+tools:context="in.ac.iiitv.CS.ServerActivity" >
 
 <TextView
     android:layout_width="wrap_content"
