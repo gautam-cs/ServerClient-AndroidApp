@@ -22,11 +22,15 @@ import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
+import java.text.DecimalFormat;
+
+import static java.lang.Math.pow;
 
 public class ServerActivity extends AppCompatActivity {
 
     TextView info, infoip, msg;
     String message = "";
+    String client_message = "";
     ServerSocket serverSocket;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -42,19 +46,6 @@ public class ServerActivity extends AppCompatActivity {
 
         Thread socketServerThread = new Thread(new SocketServerThread());
         socketServerThread.start();
-        Log.e("asf",readUsage()+"");
-        ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
-        activityManager.getMemoryInfo(mi);
-        Log.e("memory free", "" + mi.availMem);
-        Log.e("total memory",""+mi.totalMem);;
-        IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        Intent batteryStatus = this.registerReceiver(null, ifilter);
-        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-
-        float batteryPct = level / (float)scale;
-        Log.e("battery percentge", "" + batteryPct);
     }
 
     @Override
@@ -106,9 +97,32 @@ public class ServerActivity extends AppCompatActivity {
                     messageFromClient = dataInputStream.readUTF();
 
                     count++;
+                    String s1="health#007$";
+                    if(messageFromClient.equals(s1)){
+                        Thread socketServerThread = new Thread(new SocketServerThread());
+                        socketServerThread.start();
+                        Log.e("asf",readUsage()+"");
+                        ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+                        ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
+                        activityManager.getMemoryInfo(mi);
+                        Log.e("memory free", "" + mi.availMem);
+                        Log.e("total memory",""+mi.totalMem);
+                        IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+                        Intent batteryStatus = getApplicationContext().registerReceiver(null, ifilter);
+                        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+                        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+                        DecimalFormat df = new DecimalFormat("0.00");
+                        float batteryPct = level / (float)scale;
+                        Log.e("battery percentge", "" + batteryPct);
+                        client_message="SERVER HEALTH:"+"\n"+"CPU USAGE: "+df.format(readUsage()*100)+"%"+"\n"+"FREE MEMORY: "
+                                +df.format(mi.availMem/pow(2,30))+" GB"+"\n"+"TOTAL MEMORY: "+df.format(mi.totalMem/pow(2,30))+
+                                " GB"+"\n"+"BATTEY PERCENTAGE: "+batteryPct*100+"%"+"\n";
+                        message="Client " + "#" + count + " requested for health status\n";
+                    }
+                    else{
                     message += "#" + count + " from " + socket.getInetAddress()
                             + ":" + socket.getPort() + "\n"
-                            + "Msg from client: " + messageFromClient + "\n";
+                            + "Msg from client: " + messageFromClient + "\n";}
 
                     ServerActivity.this.runOnUiThread(new Runnable() {
 
@@ -118,7 +132,7 @@ public class ServerActivity extends AppCompatActivity {
                         }
                     });
 
-                    String msgReply = "Hello from Android, you are #" + count;
+                    String msgReply = client_message;
                     dataOutputStream.writeUTF(msgReply);
 
                 }
