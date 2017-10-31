@@ -24,8 +24,10 @@ public class ClientActivity extends AppCompatActivity {
     TextView textResponse;
     EditText editTextAddress, editTextPort;
     Button buttonConnect, buttonClear;
-
+    Button buttonSend;
+    Button mHealth;
     EditText welcomeMsg;
+    MyClientTask myClientTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,11 +39,36 @@ public class ClientActivity extends AppCompatActivity {
         buttonConnect = (Button) findViewById(R.id.connect);
         buttonClear = (Button) findViewById(R.id.clear);
         textResponse = (TextView) findViewById(R.id.response);
-
+        buttonSend = (Button) findViewById(R.id.send);
         welcomeMsg = (EditText)findViewById(R.id.welcomemsg);
-
+        mHealth = (Button) findViewById(R.id.health);
         buttonConnect.setOnClickListener(buttonConnectOnClickListener);
+        buttonSend.setOnClickListener(sendOnClickListener);
+        mHealth.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String finalTMsg = "health#007$";
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            myClientTask.dataOutputStream.writeUTF(finalTMsg);
+//                            final String msg = myClientTask.dataInputStream.readUTF();
+//                            runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+////                                    textResponse.setText(msg);
+//                                }
+//                            });
 
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+                thread.start();
+            }
+        });
         buttonClear.setOnClickListener(new OnClickListener() {
 
             @Override
@@ -52,18 +79,54 @@ public class ClientActivity extends AppCompatActivity {
         Log.e("asf",readUsage()+"");
     }
 
+    OnClickListener sendOnClickListener = new OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            String tMsg = welcomeMsg.getText().toString();
+            if(tMsg.equals("")){
+                tMsg = "welcome";
+                Toast.makeText(ClientActivity.this, "No Welcome Msg sent", Toast.LENGTH_SHORT).show();
+            }
+
+            final String finalTMsg = tMsg;
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        myClientTask.dataOutputStream.writeUTF(finalTMsg);
+                        if (finalTMsg.equals("QUIT")){runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.e("dsfasd","dfasdfasdf");
+                                buttonConnect.setVisibility(View.VISIBLE);
+                                mHealth.setVisibility(View.GONE);
+                                buttonSend.setVisibility(View.GONE);
+                                myClientTask.valid = false;
+                            }
+                        });
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            thread.start();
+
+
+        }
+    };
+
     OnClickListener buttonConnectOnClickListener = new OnClickListener() {
 
         @Override
         public void onClick(View arg0) {
-
+            textResponse.setText("");
             String tMsg = welcomeMsg.getText().toString();
             if(tMsg.equals("")){
-                tMsg = null;
+                tMsg = "welcome";
                 Toast.makeText(ClientActivity.this, "No Welcome Msg sent", Toast.LENGTH_SHORT).show();
             }
-
-            MyClientTask myClientTask = new MyClientTask(editTextAddress
+            myClientTask = new MyClientTask(editTextAddress
                     .getText().toString(), Integer.parseInt(editTextPort
                     .getText().toString()),
                     tMsg);
@@ -77,31 +140,68 @@ public class ClientActivity extends AppCompatActivity {
         int dstPort;
         String response = "";
         String msgToServer;
+        DataOutputStream dataOutputStream;
+        DataInputStream dataInputStream;
+        Socket socket;
+        boolean valid;
 
         MyClientTask(String addr, int port, String msgTo) {
             dstAddress = addr;
             dstPort = port;
             msgToServer = msgTo;
+            socket = null;
+            valid = true;
+
         }
-
-        @Override
+            @Override
         protected Void doInBackground(Void... arg0) {
+                try {
+                    socket = new Socket(dstAddress, dstPort);
+                    dataOutputStream = new DataOutputStream(
+                            socket.getOutputStream());
+                    dataInputStream = new DataInputStream(socket.getInputStream());
 
-            Socket socket = null;
-            DataOutputStream dataOutputStream = null;
-            DataInputStream dataInputStream = null;
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+//            Socket socket = null;
+//            DataOutputStream dataOutputStream = null;
+//            DataInputStream dataInputStream = null;
 
             try {
-                socket = new Socket(dstAddress, dstPort);
-                dataOutputStream = new DataOutputStream(
-                        socket.getOutputStream());
-                dataInputStream = new DataInputStream(socket.getInputStream());
+//                socket = new Socket(dstAddress, dstPort);
+//                dataOutputStream = new DataOutputStream(
+//                        socket.getOutputStream());
+//                dataInputStream = new DataInputStream(socket.getInputStream());
 
                 if(msgToServer != null){
                     dataOutputStream.writeUTF(msgToServer);
                 }
-
-                response = dataInputStream.readUTF();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.e("he","asdf");
+                        buttonConnect.setVisibility(View.GONE);
+//            }
+                        buttonSend.setVisibility(View.VISIBLE);
+                        mHealth.setVisibility(View.VISIBLE);
+                        textResponse.setText(response);
+                    }
+                });
+                while (valid){
+                    response = dataInputStream.readUTF();
+                    if (!response.isEmpty()){
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                textResponse.setText(response);
+                            }
+                        });
+                    }
+                }
 
             } catch (UnknownHostException e) {
                 // TODO Auto-generated catch block
@@ -111,7 +211,7 @@ public class ClientActivity extends AppCompatActivity {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
                 response = "IOException: " + e.toString();
-            } finally {
+            } /*finally {
                 if (socket != null) {
                     try {
                         socket.close();
@@ -138,13 +238,18 @@ public class ClientActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
-            }
+            }*/
             return null;
         }
 
         @Override
         protected void onPostExecute(Void result) {
-            textResponse.setText(response);
+//            if (buttonConnect.getText().toString().equals("Connect...")){
+//                buttonConnect.setVisibility(View.GONE);
+////            }
+//            buttonSend.setVisibility(View.VISIBLE);
+//            mHealth.setVisibility(View.VISIBLE);
+//            textResponse.setText(response);
             super.onPostExecute(result);
         }
 
