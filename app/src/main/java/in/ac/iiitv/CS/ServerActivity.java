@@ -150,11 +150,12 @@ public class ServerActivity extends AppCompatActivity {
                             client_message = "SERVER HEALTH:" + "\n" + "CPU USAGE: " + df.format(readUsage() * 100) + "%" + "\n" + "FREE MEMORY: "
                                     + df.format(mi.availMem / pow(2, 30)) + " GB" + "\n" + "TOTAL MEMORY: " + df.format(mi.totalMem / pow(2, 30)) +
                                     " GB" + "\n" + "BATTEY PERCENTAGE: " + batteryPct * 100 + "%" + "\n";
-                            message += "Client " + "#" + count + " requested for health status\n";
+                            message += "Client with IP=" + mySocket.getInetAddress()
+                                    + ":" + mySocket.getPort()  + " requested for health status.\n\n";
                         } else {
-                            message += "#" + count + " from " + mySocket.getInetAddress()
+                            message += "Message from client having IP=" + mySocket.getInetAddress()
                                     + ":" + mySocket.getPort() + "\n"
-                                    + "Msg from client: " + messageFromClient + "\n";
+                                    + "Msg: " + messageFromClient + ".\n\n";
                         }
                         ServerActivity.this.runOnUiThread(new Runnable() {
 
@@ -173,7 +174,8 @@ public class ServerActivity extends AppCompatActivity {
                 for (Socket clientSocket:clientSockets
                      ) {
                     DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream());
-                    dout.writeUTF(this.number+"th Client Disconnected");
+                    dout.writeUTF("Client with IP= "+mySocket.getInetAddress()
+                            + ":" + mySocket.getPort()+"is Disconnected");
                 }
             }catch (IOException e){
                 e.printStackTrace();
