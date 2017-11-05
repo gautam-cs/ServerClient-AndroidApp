@@ -3,6 +3,8 @@ package in.ac.iiitv.CS;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.InetAddress;
@@ -11,6 +13,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 
 import android.app.ActivityManager;
@@ -129,6 +132,71 @@ public class ServerActivity extends AppCompatActivity {
                     if (!messageFromClient.equals("")){
                         count++;
                         String s1 = "health#007$";
+                        if (messageFromClient.startsWith("matrix,")){
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    message = "Matrix Multiplication in progress...\n";
+                                }
+                            });
+
+                            String[] dimensions = messageFromClient.split(",");
+                            Log.e("asdf",messageFromClient);
+                            Log.e("dim",dimensions.toString());
+                            final int m = Integer.parseInt(dimensions[1]);
+                            final int n = Integer.parseInt(dimensions[2]);
+                            final int q = Integer.parseInt(dimensions[3]);
+                            final int p = n ;
+//                            final ProgressDialog dialog = new ProgressDialog(c);
+//                dialog.setMessage("Matrix Multiplication is being Done");
+//                dialog.show();
+                            Thread thread =  new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    int first[][] = new int[m][n];
+                                    int second[][] = new int[p][q];
+                                    int multiply[][] = new int[m][q];
+
+//                System.out.println("Enter the elements of second matrix");
+
+                                    for (int c = 0; c < p; c++)
+                                        for (int d = 0; d < q; d++)
+                                            second[c][d] = c * d;
+                                    for (int c = 0; c < m; c++)
+                                        for (int d = 0; d < n; d++)
+                                            first[c][d] = c + d;
+                                    int sum = 0;
+                                    for (int c = 0; c < m; c++) {
+                                        for (int d = 0; d < q; d++) {
+                                            for (int k = 0; k < p; k++) {
+                                                sum = sum + first[c][k] * second[k][d];
+                                            }
+
+                                            multiply[c][d] = sum;
+                                            sum = 0;
+                                        }
+                                        Log.e("i a", "dsaf");
+                                    }
+                                    File file = new File(getApplicationContext().getExternalFilesDir(null), "result.txt");
+                                    String string = Arrays.deepToString(multiply);
+                                    FileOutputStream outputStream = null;
+                                    try {
+                                        outputStream = new FileOutputStream(file);
+                                        outputStream.write(string.getBytes());
+                                        outputStream.close();
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                msg.append("matrix multiplication done\n");
+                                            }
+                                        });
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
+                            thread.start();
+                        }else
                         if (messageFromClient.equals(s1)) {
                             Thread socketServerThread = new Thread(new SocketServerThread());
                             socketServerThread.start();
@@ -150,10 +218,10 @@ public class ServerActivity extends AppCompatActivity {
                             client_message = "SERVER HEALTH:" + "\n" + "CPU USAGE: " + df.format(readUsage() * 100) + "%" + "\n" + "FREE MEMORY: "
                                     + df.format(mi.availMem / pow(2, 30)) + " GB" + "\n" + "TOTAL MEMORY: " + df.format(mi.totalMem / pow(2, 30)) +
                                     " GB" + "\n" + "BATTEY PERCENTAGE: " + batteryPct * 100 + "%" + "\n";
-                            message += "Client with IP=" + mySocket.getInetAddress()
+                            message = "Client with IP=" + mySocket.getInetAddress()
                                     + ":" + mySocket.getPort()  + " requested for health status.\n\n";
                         } else {
-                            message += "Message from client having IP=" + mySocket.getInetAddress()
+                            message = "Message from client having IP=" + mySocket.getInetAddress()
                                     + ":" + mySocket.getPort() + "\n"
                                     + "Msg: " + messageFromClient + ".\n\n";
                         }
@@ -161,7 +229,7 @@ public class ServerActivity extends AppCompatActivity {
 
                             @Override
                             public void run() {
-                                msg.setText(message);
+                                msg.append(message);
                             }
                         });
                         String msgReply = client_message;

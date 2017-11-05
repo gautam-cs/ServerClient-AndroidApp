@@ -28,12 +28,13 @@ public class ClientActivity extends AppCompatActivity {
     Button mHealth;
     EditText welcomeMsg;
     MyClientTask myClientTask;
+    Button mMatrixMultiplication;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client);
-
+        mMatrixMultiplication = (Button) findViewById(R.id.matrix_multiplication);
         editTextAddress = (EditText) findViewById(R.id.address);
         editTextPort = (EditText) findViewById(R.id.port);
         buttonConnect = (Button) findViewById(R.id.connect);
@@ -44,6 +45,31 @@ public class ClientActivity extends AppCompatActivity {
         mHealth = (Button) findViewById(R.id.health);
         buttonConnect.setOnClickListener(buttonConnectOnClickListener);
         buttonSend.setOnClickListener(sendOnClickListener);
+        mMatrixMultiplication.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String finalTMsg = "matrix," + welcomeMsg.getText().toString();
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            myClientTask.dataOutputStream.writeUTF(finalTMsg);
+//                            final String msg = myClientTask.dataInputStream.readUTF();
+//                            runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+////                                    textResponse.setText(msg);
+//                                }
+//                            });
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+                thread.start();
+            }
+        });
         mHealth.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -49,6 +49,12 @@ tools:context="in.ac.iiitv.CS.ClientActivity" >
     android:layout_height="wrap_content"
     android:text="Clear"/>
 
+    <Button
+        android:id="@+id/matrix_multiplication"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Matrix Multiplication" />
+
     <TextView
         android:id="@+id/response"
         android:layout_width="match_parent"
